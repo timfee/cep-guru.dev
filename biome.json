@@ -12,25 +12,38 @@
   "formatter": {
     "enabled": true,
     "indentStyle": "space",
-    "indentWidth": 2
+    "indentWidth": 2,
+    "bracketSameLine": true,
+    "expand": "auto"
   },
   "linter": {
     "enabled": true,
+
     "rules": {
       "recommended": true,
+      "complexity": "warn",
+      "correctness": "warn",
+      "a11y": "info",
+      "performance": "warn",
+      "security": "error",
+      "style": {
+        "recommended": true
+      },
       "suspicious": {
         "noUnknownAtRules": "off"
       }
     },
     "domains": {
-      "next": "recommended",
+      "next": "all",
       "react": "recommended"
     }
   },
   "assist": {
     "actions": {
       "source": {
-        "organizeImports": "on"
+        "organizeImports": "on",
+        "useSortedProperties": "on",
+        "recommended": true
       }
     }
   }
