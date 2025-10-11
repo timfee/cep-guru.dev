@@ -1,3 +1,4 @@
+import { Analytics } from "@vercel/analytics/next";
 import type { Metadata } from "next";
 import { Google_Sans_Code, Inter } from "next/font/google";
 import "./globals.css";
@@ -28,6 +29,7 @@ export default function RootLayout({
       <body
         className={`${inter.variable} ${googleSansCode.variable} antialiased`}>
         {children}
+        <Analytics />
       </body>
     </html>
   );
