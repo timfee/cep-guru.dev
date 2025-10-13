@@ -15,7 +15,7 @@ export const Image = ({
 }: ImageProps) => (
   <NextImage
     {...props}
-    alt={props.alt}
+    alt={props.alt || ""}
     className={cn(
       "h-auto max-w-full overflow-hidden rounded-md",
       props.className,
