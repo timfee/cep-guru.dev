@@ -2,8 +2,8 @@
   "inputs": [],
   "servers": {
     "shadcn": {
-      "args": ["shadcn@latest", "mcp"],
-      "command": "bunx",
+      "args": ["x", "shadcn@latest", "mcp"],
+      "command": "bun",
       "type": "stdio"
     }
   }

@@ -1,109 +1,109 @@
-import dotenv from "dotenv";
-
-dotenv.config({
-  path: ".env.local",
-});
-
-import { Index } from "@upstash/vector";
 import { CheerioCrawler } from "crawlee";
-import TurndownService from "turndown";
+import {
+  cleanHtml,
+  type Document,
+  extractCleanTitle,
+  extractHelpcenterMetadata,
+  getStandardId,
+  MAX_CONCURRENCY,
+  MAX_REQUESTS,
+  processDocs,
+  turndown,
+} from "./crawl-utils.js";
 
-const turndown = new TurndownService({
-  headingStyle: "atx",
-  codeBlockStyle: "fenced",
-  bulletListMarker: "-",
-});
-
-const UPSTASH_MAX_DATA_SIZE = 1024 * 1024; // 1MB
-
-const headers = {}; // copy and paste "Fetch Headers (Node.js)" when off corp
-
-// Keep tables in HTML format
-turndown.keep(["table", "thead", "tbody", "tr", "td", "th"]);
+const headers = {
+  accept:
+    "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
+  "accept-language": "en-US,en;q=0.9",
+  "cache-control": "max-age=0",
+  priority: "u=0, i",
+  "sec-ch-ua":
+    '"Google Chrome";v="141", "Not?A_Brand";v="8", "Chromium";v="141"',
+  "sec-ch-ua-arch": '""',
+  "sec-ch-ua-bitness": '"64"',
+  "sec-ch-ua-full-version-list":
+    '"Google Chrome";v="141.0.7390.66", "Not?A_Brand";v="8.0.0.0", "Chromium";v="141.0.7390.66"',
+  "sec-ch-ua-mobile": "?1",
+  "sec-ch-ua-model": '"Nexus 5"',
+  "sec-ch-ua-platform": '"Android"',
+  "sec-ch-ua-platform-version": '"6.0"',
+  "sec-ch-ua-wow64": "?0",
+  "sec-fetch-dest": "document",
+  "sec-fetch-mode": "navigate",
+  "sec-fetch-site": "same-origin",
+  "sec-fetch-user": "?1",
+  "upgrade-insecure-requests": "1",
+  "x-browser-channel": "stable",
+  "x-browser-copyright": "Copyright 2025 Google LLC. All rights reserved.",
+  "x-browser-validation": "qSH0RgPhYS+tEktJTy2ahvLDO9s=",
+  "x-browser-year": "2025",
+  "x-client-data":
+    "CKG1yQEIkbbJAQijtskBCKmdygEIhuPKAQiSocsBCLGkywEIhqDNAQjo5M4BCMPxzgEI1IjPAQjKi88BCJeMzwEIpIzPAQiNjs8BCO6OzwEIqI/PARiyhs8BGKWHzwEYmIjPARjGiM8B",
+  cookie:
+    "SEARCH_SAMESITE=CgQIkp8B; __Secure-GSSO_UberProxy=CAMSEXRpbWZlZUBnb29nbGUuY29tGP_dz-64DyIwdXAuY29ycC5nb29nbGUuY29tOjQ0My91YmVycHJveHkvQTNFTjZnblBmWmlrajYvKAFA3f7s1J0zSMCjhgFQkejbAVpVEgxyZW5ld19nbnViYnkiGAoPSU5tUXNJbmY2SlhkeWdFEOOs1tOcMyorQTNFTjZnblBmWmlrajZTc3VMbEhpL3pyY0M2SWhlOEtJYjZ4MzhyaGlxOGIDSnUzaLb7_4fXE3J2CnQKckVoRjBhVzFtWldWQVoyOXZaMnhsTG1OdmJScEF5MXVkbXFSSzZhdnZ4bnl1NC1qU2tYX0FPSHFCaDluU2hIRkh3VjdiOUF5Sm0yMkpCbzJYQm5Pb0d4Q3lyMVZQcnRfNUN6YVNMYUFyai1ma1hXNVlYQQ.MEQCIB68qFhV-4W2SgZgoU4Ua3nSGXK6pJKcihbxJwCR9YavAiAFwRxhrCx-Q_PHe6QcA2uVbma9sAiENe5J2T3VKOLxEw; _gid=GA1.3.1655216509.1760312987; AEC=AaJma5tj5eBRc5mkWGE2GIJ8tNA7v82sUcObZzIp7qwT81r_kZLNL9Jr8A; GOOGLE_ABUSE_EXEMPTION=ID=9d80b856d225eb59:TM=1760313166:C=r:IP=2600:1700:2f71:2350:68c4:7724:2a15:aadf-:S=TyqVY3-mvXOnLyQM7XntHa0; S=sso=1QFjh65z-pvABRzveZuaDQbOVuy7jEQa; SID=g.a0002Qj_7r5bZz4h19yG2t7rG73GNi_fHg0ZLJBaexomkytR8ZpLF0jgRiH9CgMKzvLR9eRS6QACgYKAaUSARcSFQHGX2MidH_9cqITRe9NzInl043SExoVAUF8yKqNyuNA1BQDCNrU06HKWBct0076; __Secure-1PSID=g.a0002Qj_7r5bZz4h19yG2t7rG73GNi_fHg0ZLJBaexomkytR8ZpLwL8M2PyA2CcNTK7q3M8tLAACgYKAQ8SARcSFQHGX2Migzfik9keH5jpaKxoTWW-lRoVAUF8yKqUzrghS3HiZ_JH4TPCF-uT0076; __Secure-3PSID=g.a0002Qj_7r5bZz4h19yG2t7rG73GNi_fHg0ZLJBaexomkytR8ZpLRyalktH4iRBPS9NmDhW6ewACgYKAfcSARcSFQHGX2MiubU1s-4eX-DRFapLms7xshoVAUF8yKrNhYLguU6hfheYj-vBFRFO0076; HSID=AmqSe18EsVRSHtNUB; SSID=Ay1sgmjauPBTvykfA; APISID=FVMoBJgTYtVAqikY/AlbXDzGkC4a8Bn_1n; SAPISID=lbdXo5b9ezhlpbuN/AAwCyLLFo87RL8Qtl; __Secure-1PAPISID=lbdXo5b9ezhlpbuN/AAwCyLLFo87RL8Qtl; __Secure-3PAPISID=lbdXo5b9ezhlpbuN/AAwCyLLFo87RL8Qtl; NID=525=lmxe6RXLC4jCzClDU4M_WDDgqhCzUcCF2wBjxeSFKPsjGCCIwtdPDevL4ejvykEQj35Go59_x8Zovz4oRmuj2X88sd5koH1J3S4SuR5S4apmWoxWonRWdoydY62Te8QPpNfogSsNHr3CQ4PICw2CyFPoacXVEvKPV3966G91U7RScbFEOclJRFlgKPa7soLm94eMzxcu_gymnLT9iio_8CPewU0VZBmR_-eIfXKHAY9wpjY0VfEHxVe8O47ZdtV2G21GVQTBnKkxUWk5wCLCQWYFWEluzELEO2W0RuWDbcKle7DVqPIShlylo-bcWBRccwSgSB6J5-Y5x_d6maWzJVrPNyn3iBuGMDZ5CELvvZCMc8cN-abF8-g55b3sFzObcoIH5PGeomeVj8E3feE-J66Zh6NS6g6UdYgM9ds1rztVEJlz_tgEHF5dpSs_RuE2X1PPwUv8tXqHQ0vfhEiXkjpdncjOU8LG4TDnf4J8IUpgnvscu0xQslXCp15B0G7eHTxBH1dc05NCyzGy9Ji-XKbLdT8qE7Be7Y2KjHdI2Sa0kpgSOZl0p2VSNzQEc2oulplfC3wLF7s93Q6G7Jta_c12iUqD7Zs1v-Lx00bxGzu3l7D_6VopLzdv4le_NfumqMidoteUlAsJgvvY_Ga9rRfEwPzLoSB1R_G4KaDNVo9bdkOUTHOW6jzV0oaGlMoBwrwvwQ4OCQydlx-jAxgb8Y_-NLHidRJil4VT1kIDm16SDLX-I2icEQtYG214fBBu12rNW7TaBrkdAYg-R6UjKF7S8DwxC5nSKjve6Bu8hGHoUJK0vc_4Mjc8LEdNOs77xwcNnNuTVR9yeFzHMSNPexiZNPyT8JikUMaRqot_Gv0_bNtppTz7iXQ_x0tlFPuLZ41UgSh1N_46KsYrQ4aBzraq_oyn-j7mYtbFoaqbdyfrdSMPe6-U4-hwgxpMliqZ2nCTEabPu0Bl8I7iLeZHryDsu85SMBpnBw; __Secure-1PSIDTS=sidts-CjEBmkD5S5PbfQLZm7g0xSzSFjiojfb2BcbiPlwSvbHey51iOQxw_n2KK6Q9KSyxzqzZEAA; __Secure-3PSIDTS=sidts-CjEBmkD5S5PbfQLZm7g0xSzSFjiojfb2BcbiPlwSvbHey51iOQxw_n2KK6Q9KSyxzqzZEAA; SUPPORT_CONTENT=638959139939389772-923385937; _ga_H30R9PNQFN=GS2.1.s1760317194$o3$g0$t1760317194$j60$l0$h0; _ga=GA1.3.1244057624.1759971320; _gat_gtag_UA_175894890_5=1; SIDCC=AKEyXzWK8y93LKPIo_JFsPIbdDVyw4UlICPMSfd_nFTAn0LpI3d8pwbuVriclhXG08HPXF6s_0fu; __Secure-1PSIDCC=AKEyXzUk7ReyfNeA40uTG-1UtoqNvimNjIzrjSZv3ZjOJHIfqGykhhU7RdqpWLaCD0-LJn33fK4; __Secure-3PSIDCC=AKEyXzXA8ys8OI9fYeBx-0arrklXqVTRxzd5r2p0DrI0hGudqbINT4jvicjN5KEXp_MXN9cj-Svz",
+};
 
 async function main() {
-  const documents: {
-    content: string;
-    kind: string;
-    url: string;
-    title: string;
-  }[] = [];
+  const documents: Document[] = [];
 
   const crawler = new CheerioCrawler({
-    maxRequestsPerCrawl: 300,
-    maxConcurrency: 10,
+    maxRequestsPerCrawl: MAX_REQUESTS,
+    maxConcurrency: MAX_CONCURRENCY,
+
     preNavigationHooks: [
-      ({ request }) => {
+      ({ request }, gotOptions) => {
+        gotOptions.http2 = false;
         request.headers = headers;
       },
     ],
+
+    failedRequestHandler({ request }) {
+      console.log(`❌ Failed to crawl: ${request.url}`);
+    },
+
     async requestHandler({ request, $, enqueueLinks }) {
       const articleHtml = $("article").html() ?? "";
+      const cleaned = cleanHtml(articleHtml);
 
-      // Remove "Was this helpful?" section
-      const cleanHtml =
-        articleHtml.split(/Was this helpful\?/i)[0] || articleHtml;
+      if (!request.url.match(/\/(answer|topic)\/(\d+)/)) return;
 
-      // Find and enqueue Chrome answer links
-      const links: string[] = [];
-      // Type guard to safely read attribs.href without unsafe casts
-      const getHref = (node: unknown): string | null => {
-        if (typeof node !== "object" || node === null) return null;
-        const maybe = node as { attribs?: Record<string, unknown> };
-        const href = maybe.attribs?.href;
-        return typeof href === "string" ? href : null;
-      };
-
-      $("article")
-        .find("a[href*='/chrome/a/answer/']")
-        .each((_, el: unknown) => {
-          const href = getHref(el);
-          if (href) links.push(href);
-        });
-
-      if (links.length > 0) {
-        await enqueueLinks({
-          urls: links,
-          transformRequestFunction: (req) => {
-            try {
-              const url = new URL(req.url);
-              url.search = "";
-              url.hash = "";
-              return { ...req, url: url.toString() };
-            } catch {
-              return req;
-            }
-          },
-        });
-      }
-
-      // Extract article ID from either answer/ or topic/ patterns
-      const match = request.url.match(/\/(answer|topic)\/(\d+)/);
-      if (!match) return;
-      const articleId = match[2]; // The digits after answer/ or topic/
-
-      // Convert to markdown
-      const content = turndown.turndown(cleanHtml);
-
-      // Extract title (first heading or first line)
-      const firstLine = content.split("\n").find((line) => line.trim());
-      const title = firstLine?.replace(/^#+\s+/, "") ?? `Article ${articleId}`;
+      const articleId = getStandardId(request.url);
+      const title = extractCleanTitle($("h1"), request.url);
+      const helpcenterMetadata = extractHelpcenterMetadata(request.url);
+      const content = turndown.turndown(cleaned);
 
       documents.push({
-        content: content,
+        id: articleId,
+        content,
         kind: "admin-docs",
-        url: request.url,
-        title: title,
+        url: articleId,
+        title,
+        metadata: helpcenterMetadata,
       });
       console.log(`✓ Crawled: ${title}`);
+
+      await enqueueLinks({
+        globs: ["**/chrome/a/answer/**", "**/a/topic/**"],
+        selector: "article a[href]",
+        transformRequestFunction: (req) => {
+          try {
+            const url = new URL(req.url);
+            url.search = "";
+            url.hash = "";
+            req.url = url.toString();
+            return req;
+          } catch {
+            return false;
+          }
+        },
+        limit: 200,
+      });
     },
   });
 
-  // Start crawling
   console.log("Starting crawler...");
   await crawler.run([
     "https://support.google.com/chrome/a#topic=7679105",
-
     "https://support.google.com/a/answer/10026322",
     "https://support.google.com/a/answer/10840369",
     "https://support.google.com/a/answer/11068433",
@@ -138,52 +138,8 @@ async function main() {
     "https://support.google.com/a/topic/9105077",
   ]);
 
-  // Run all document resource creations concurrently in batches for better performance
-  if (documents.length === 0) {
-    console.log("No documents to create resources for.");
-  } else {
-    console.log(
-      `Creating resources in database for ${documents.length} documents...`
-    );
-
-    // Process in batches of 10 for optimal speed without overwhelming the API
-    const BATCH_SIZE = 100;
-    const batches: (typeof documents)[] = [];
-
-    for (let i = 0; i < documents.length; i += BATCH_SIZE) {
-      batches.push(documents.slice(i, i + BATCH_SIZE));
-    }
-
-    console.log(
-      `Processing ${batches.length} batches of up to ${BATCH_SIZE} documents each...`
-    );
-
-    const index = new Index();
-
-    for (let i = 0; i < batches.length; i++) {
-      const batch = batches[i];
-      console.log(`\nBatch ${i + 1}/${batches.length}:`);
-
-      // Process batch concurrently
-      await Promise.all(
-        batch.map(async (doc) => {
-          console.log(`  Working on: ${doc.title}`);
-          index.upsert({
-            id: doc.url,
-            data: doc.content.slice(0, UPSTASH_MAX_DATA_SIZE), // Truncate to 1MB
-            metadata: {
-              kind: doc.kind,
-              title: doc.title,
-              url: doc.url,
-            },
-          });
-        })
-      );
-    }
-
-    console.log("\n✅ All resources created successfully!");
-    await crawler.teardown();
-  }
+  await processDocs(documents);
+  await crawler.teardown();
 }
 
 main().catch(console.error);
