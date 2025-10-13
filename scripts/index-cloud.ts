@@ -16,8 +16,23 @@ const turndown = new TurndownService({
 
 const UPSTASH_MAX_DATA_SIZE = 1024 * 1024; // 1MB
 
-const headers = {}; // copy and paste "Fetch Headers (Node.js)" when off corp
-
+const headers = {
+  "sec-ch-ua":
+    '"Google Chrome";v="141", "Not?A_Brand";v="8", "Chromium";v="141"',
+  "sec-ch-ua-arch": '""',
+  "sec-ch-ua-bitness": '"64"',
+  "sec-ch-ua-form-factors": '"Desktop"',
+  "sec-ch-ua-full-version": '"141.0.7390.66"',
+  "sec-ch-ua-full-version-list":
+    '"Google Chrome";v="141.0.7390.66", "Not?A_Brand";v="8.0.0.0", "Chromium";v="141.0.7390.66"',
+  "sec-ch-ua-mobile": "?1",
+  "sec-ch-ua-model": '"Nexus 5"',
+  "sec-ch-ua-platform": '"Android"',
+  "sec-ch-ua-platform-version": '"6.0"',
+  "sec-ch-ua-wow64": "?0",
+  "upgrade-insecure-requests": "1",
+  Referer: "https://www.google.com/",
+};
 // Keep tables in HTML format
 turndown.keep(["table", "thead", "tbody", "tr", "td", "th"]);
 
@@ -55,7 +70,7 @@ async function main() {
       };
 
       $("article")
-        .find("a[href*='/chrome/a/answer/']")
+        .find("a[href*='/chrome-enterprise-premium/']")
         .each((_, el: unknown) => {
           const href = getHref(el);
           if (href) links.push(href);
@@ -77,21 +92,32 @@ async function main() {
         });
       }
 
-      // Extract article ID from either answer/ or topic/ patterns
-      const match = request.url.match(/\/(answer|topic)\/(\d+)/);
-      if (!match) return;
-      const articleId = match[2]; // The digits after answer/ or topic/
+      // Extract URL path as article ID (no search params, hash, etc.)
+      const url = new URL(request.url);
+      const articleId = url.pathname;
+
+      // Extract title from h1.devsite-page-title (text only, no nested elements)
+      const titleElement = $("h1.devsite-page-title");
+      let title = "";
+      if (titleElement.length > 0) {
+        // Get only direct text nodes, ignoring nested elements
+        title = titleElement
+          .contents()
+          .filter(function () {
+            return this.type === "text";
+          })
+          .text()
+          .replace(/\s+/g, " ")
+          .trim();
+      }
+      title = title || `Article ${articleId}`;
 
       // Convert to markdown
       const content = turndown.turndown(cleanHtml);
 
-      // Extract title (first heading or first line)
-      const firstLine = content.split("\n").find((line) => line.trim());
-      const title = firstLine?.replace(/^#+\s+/, "") ?? `Article ${articleId}`;
-
       documents.push({
         content: content,
-        kind: "admin-docs",
+        kind: "cloud-docs",
         url: request.url,
         title: title,
       });
@@ -102,40 +128,7 @@ async function main() {
   // Start crawling
   console.log("Starting crawler...");
   await crawler.run([
-    "https://support.google.com/chrome/a#topic=7679105",
-
-    "https://support.google.com/a/answer/10026322",
-    "https://support.google.com/a/answer/10840369",
-    "https://support.google.com/a/answer/11068433",
-    "https://support.google.com/a/answer/11368990",
-    "https://support.google.com/a/answer/11560430",
-    "https://support.google.com/a/answer/12642329",
-    "https://support.google.com/a/answer/12642752",
-    "https://support.google.com/a/answer/12642828",
-    "https://support.google.com/a/answer/12643733",
-    "https://support.google.com/a/answer/13447476",
-    "https://support.google.com/a/answer/13790448",
-    "https://support.google.com/a/answer/14914403",
-    "https://support.google.com/a/answer/15178509",
-    "https://support.google.com/a/answer/16118940",
-    "https://support.google.com/a/answer/16244319",
-    "https://support.google.com/a/answer/16409481",
-    "https://support.google.com/a/answer/16479560",
-    "https://support.google.com/a/answer/9184226",
-    "https://support.google.com/a/answer/9261439",
-    "https://support.google.com/a/answer/9262032",
-    "https://support.google.com/a/answer/9275380",
-    "https://support.google.com/a/answer/9394107",
-    "https://support.google.com/a/answer/9587667",
-    "https://support.google.com/a/answer/9668676",
-    "https://support.google.com/a/topcic/10104463",
-    "https://support.google.com/a/topic/10742486",
-    "https://support.google.com/a/topic/11399553",
-    "https://support.google.com/a/topic/7492529",
-    "https://support.google.com/a/topic/7556597",
-    "https://support.google.com/a/topic/7558840",
-    "https://support.google.com/a/topic/9061731",
-    "https://support.google.com/a/topic/9105077",
+    "https://cloud.google.com/chrome-enterprise-premium/docs/overview",
   ]);
 
   // Run all document resource creations concurrently in batches for better performance
@@ -168,8 +161,12 @@ async function main() {
       await Promise.all(
         batch.map(async (doc) => {
           console.log(`  Working on: ${doc.title}`);
+          // Use URL path as ID (no search params, hash, etc.)
+          const url = new URL(doc.url);
+          const articleId = url.pathname;
+
           index.upsert({
-            id: doc.url,
+            id: articleId,
             data: doc.content.slice(0, UPSTASH_MAX_DATA_SIZE), // Truncate to 1MB
             metadata: {
               kind: doc.kind,
