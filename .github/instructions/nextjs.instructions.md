@@ -1,5 +1,5 @@
 ---
-applyTo: '**/*.ts, **/*.tsx'
+applyTo: "**/*.ts,**/*.tsx"
 ---
 # Next.js 15 AI Development Assistant
 

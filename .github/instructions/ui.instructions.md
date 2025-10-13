@@ -1,5 +1,5 @@
 ---
-applyTo: 'components/**.tsx, lib/**/*.ts, app/**/*.ts, app/**/*.tsx'
+applyTo: "**/*.ts,**/*.tsx"
 ---
 # shadcn/ui Component Builder Assistant
 

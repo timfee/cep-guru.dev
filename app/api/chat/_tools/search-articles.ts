@@ -2,28 +2,28 @@ import { Index } from "@upstash/vector";
 import { tool } from "ai";
 import { z } from "zod/v4";
 import type {
-  PolicySearchResult,
-  PolicyVectorMetadata,
+  ArticleSearchResult,
+  ArticleVectorMetadata,
 } from "@/lib/vector-types";
 
-export function searchPoliciesTool() {
-  const index = new Index<PolicyVectorMetadata>();
+export function searchArticlesTool() {
+  const index = new Index<ArticleVectorMetadata>();
 
   return tool({
     description:
-      "Search for Chrome Policy related information in the knowledge base.",
+      "Search for Chrome Enterprise articles and documentation in the knowledge base.",
     inputSchema: z.object({
       query: z
         .string()
         .describe(
-          "The search query (relevant to Chrome Policies) to find relevant information"
+          "The search query to find relevant Chrome Enterprise documentation"
         ),
       limit: z
         .number()
         .optional()
         .describe("Maximum number of results to return (default: 3)"),
     }),
-    execute: async ({ query, limit = 3 }): Promise<PolicySearchResult[]> => {
+    execute: async ({ query, limit = 3 }): Promise<ArticleSearchResult[]> => {
       const results = await index.query({
         data: query,
         includeData: true,
@@ -36,15 +36,12 @@ export function searchPoliciesTool() {
       }
 
       return results.map(
-        (hit, i): PolicySearchResult => ({
+        (hit, i): ArticleSearchResult => ({
           resourceId: String(hit.id),
           rank: i + 1,
-          policyName: hit.metadata?.policyName,
-          policyId: hit.metadata?.policyId,
-          deprecated: hit.metadata?.deprecated,
-          deviceOnly: hit.metadata?.deviceOnly,
-          platforms: hit.metadata?.supportedPlatforms,
-          tags: hit.metadata?.tags,
+          title: hit.metadata?.title,
+          articleType: hit.metadata?.articleType,
+          articleId: hit.metadata?.articleId,
           content: hit.data || "",
           score: hit.score || 0,
           url: hit.metadata?.url,

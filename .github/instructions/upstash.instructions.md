@@ -1,5 +1,5 @@
 ---
-applyTo: '**'
+applyTo: "**/*.ts,**/*.tsx"
 ---
 # Upstash Vector Database
 

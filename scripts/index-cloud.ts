@@ -1,13 +1,10 @@
 import { CheerioCrawler } from "crawlee";
 import {
   type Document,
-  extractCleanTitle,
-  getStandardId,
   MAX_CONCURRENCY,
   MAX_REQUESTS,
-  processDocs,
-  turndown,
-} from "./crawl-utils.js";
+} from "@/lib/vector-types";
+import { getStandardId, processDocs, turndown } from "./crawl-utils";
 
 async function main() {
   const documents: Document[] = [];
@@ -19,11 +16,47 @@ async function main() {
     async requestHandler({ request, $, enqueueLinks }) {
       const articleHtml = $("div.devsite-article-body").html() ?? "";
       const articleId = getStandardId(request.url);
-      const titleElement = $("h1.devsite-page-title");
-      const title = extractCleanTitle(titleElement, request.url);
+
+      // Better title extraction for Google Cloud docs
+      let title = "";
+
+      // Try h1.devsite-page-title first and get only direct text nodes
+      const h1Element = $("h1.devsite-page-title").first();
+      if (h1Element.length) {
+        // Get only the direct text content, excluding child elements
+        const h1Clone = h1Element.clone();
+        h1Clone.children().remove(); // Remove all child elements
+        title = h1Clone.text().trim();
+      }
+
+      // Fallback to regular h1 if no devsite-page-title
+      if (!title) {
+        const h1 = $("h1").first();
+        if (h1.length) {
+          const h1Clone = h1.clone();
+          h1Clone.children().remove();
+          title = h1Clone.text().trim();
+        }
+      }
+
+      // Fallback to page title
+      if (!title) {
+        title = $("title").first().text().split(" | ")[0].trim();
+      }
+
+      // Final URL-based fallback
+      if (!title) {
+        const urlPath = new URL(request.url).pathname;
+        const pathSegments = urlPath.split("/").filter(Boolean);
+        title =
+          pathSegments[pathSegments.length - 1]
+            .replace(/-/g, " ")
+            .replace(/\b\w/g, (l) => l.toUpperCase()) || "Untitled";
+      }
+
       const content = turndown.turndown(articleHtml);
 
-      if (title) {
+      if (title && title !== "Untitled" && content.trim()) {
         documents.push({
           id: articleId,
           content,
@@ -32,16 +65,38 @@ async function main() {
           title,
         });
         console.log(`✓ Crawled: ${title}`);
+      } else {
+        console.log(
+          `⚠️ Skipping page with insufficient content: ${request.url}`
+        );
       }
 
       await enqueueLinks({
         globs: ["**/chrome-enterprise-premium/**"],
         transformRequestFunction: (req) => {
-          const url = new URL(req.url);
-          url.search = "";
-          url.hash = "";
-          req.url = url.toString();
-          return req;
+          try {
+            const url = new URL(req.url);
+
+            // Skip non-content URLs
+            const path = url.pathname;
+            if (
+              path.includes("/reference/") ||
+              path.includes("/samples/") ||
+              path.includes("/quotas") ||
+              path.endsWith("/") ||
+              path.includes("#")
+            ) {
+              return false;
+            }
+
+            // Clean the URL
+            url.search = "";
+            url.hash = "";
+            req.url = url.toString();
+            return req;
+          } catch {
+            return false;
+          }
         },
       });
     },
