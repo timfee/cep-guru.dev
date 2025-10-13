@@ -16,7 +16,7 @@ export function searchArticlesTool() {
       query: z
         .string()
         .describe(
-          "The search query to find relevant Chrome Enterprise documentation"
+          "The search query to find relevant Chrome Enterprise documentation",
         ),
       limit: z
         .number()
@@ -45,7 +45,7 @@ export function searchArticlesTool() {
           content: hit.data || "",
           score: hit.score || 0,
           url: hit.metadata?.url,
-        })
+        }),
       );
     },
   });

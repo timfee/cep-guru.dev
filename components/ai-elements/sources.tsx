@@ -1,13 +1,13 @@
 "use client";
 
+import { BookIcon, ChevronDownIcon } from "lucide-react";
+import type { ComponentProps } from "react";
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import { cn } from "@/lib/utils";
-import { BookIcon, ChevronDownIcon } from "lucide-react";
-import type { ComponentProps } from "react";
 
 export type SourcesProps = ComponentProps<"div">;
 
@@ -30,8 +30,7 @@ export const SourcesTrigger = ({
 }: SourcesTriggerProps) => (
   <CollapsibleTrigger
     className={cn("flex items-center gap-2", className)}
-    {...props}
-  >
+    {...props}>
     {children ?? (
       <>
         <p className="font-medium">Used {count} sources</p>
@@ -51,7 +50,7 @@ export const SourcesContent = ({
     className={cn(
       "mt-3 flex w-fit flex-col gap-2",
       "data-[state=closed]:fade-out-0 data-[state=closed]:slide-out-to-top-2 data-[state=open]:slide-in-from-top-2 outline-none data-[state=closed]:animate-out data-[state=open]:animate-in",
-      className
+      className,
     )}
     {...props}
   />
@@ -65,8 +64,7 @@ export const Source = ({ href, title, children, ...props }: SourceProps) => (
     href={href}
     rel="noreferrer"
     target="_blank"
-    {...props}
-  >
+    {...props}>
     {children ?? (
       <>
         <BookIcon className="h-4 w-4" />

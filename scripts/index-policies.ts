@@ -1,10 +1,12 @@
 import { Index } from "@upstash/vector";
 import dotenv from "dotenv";
+
 import {
   BATCH_SIZE,
   type PolicyDocument,
   UPSTASH_MAX_DATA_SIZE,
 } from "@/lib/vector-types";
+
 import {
   getSupportedOnText,
   type PolicyDefinition,
@@ -121,7 +123,7 @@ async function processPolicyDocs(documents: PolicyDocument[]): Promise<void> {
   }
 
   console.log(
-    `Processing ${batches.length} batches of up to ${BATCH_SIZE} documents each...`
+    `Processing ${batches.length} batches of up to ${BATCH_SIZE} documents each...`,
   );
 
   const index = new Index();
@@ -152,7 +154,7 @@ async function processPolicyDocs(documents: PolicyDocument[]): Promise<void> {
               features: doc.metadata.features,
             },
           });
-        })
+        }),
       );
 
       const successful = results.filter((r) => r.status === "fulfilled").length;
@@ -216,7 +218,7 @@ async function main() {
   });
 
   console.log(
-    `Generated ${documents.length} policy documents with rich metadata`
+    `Generated ${documents.length} policy documents with rich metadata`,
   );
 
   await processPolicyDocs(documents);

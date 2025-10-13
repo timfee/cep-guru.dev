@@ -16,7 +16,7 @@ export function searchPoliciesTool() {
       query: z
         .string()
         .describe(
-          "The search query (relevant to Chrome Policies) to find relevant information"
+          "The search query (relevant to Chrome Policies) to find relevant information",
         ),
       limit: z
         .number()
@@ -48,7 +48,7 @@ export function searchPoliciesTool() {
           content: hit.data || "",
           score: hit.score || 0,
           url: hit.metadata?.url,
-        })
+        }),
       );
     },
   });

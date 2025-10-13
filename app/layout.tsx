@@ -1,9 +1,10 @@
 import { Analytics } from "@vercel/analytics/next";
 import type { Metadata } from "next";
-import { Inter, JetBrains_Mono } from "next/font/google";
+import { JetBrains_Mono, Roboto_Flex } from "next/font/google";
+
 import "./globals.css";
 
-const inter = Inter({
+const inter = Roboto_Flex({
   variable: "--font-inter",
 });
 
@@ -23,9 +24,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body
-        className={`${inter.variable} ${jetBrainsMono.variable} antialiased`}>
+    <html
+      lang="en"
+      className={`${inter.variable} ${jetBrainsMono.variable} antialiased`}>
+      <body>
         {children}
         <Analytics />
       </body>

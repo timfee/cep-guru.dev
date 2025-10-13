@@ -1,12 +1,9 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import {
-  ScrollArea,
-  ScrollBar,
-} from "@/components/ui/scroll-area";
-import { cn } from "@/lib/utils";
 import type { ComponentProps } from "react";
+import { Button } from "@/components/ui/button";
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
+import { cn } from "@/lib/utils";
 
 export type SuggestionsProps = ComponentProps<typeof ScrollArea>;
 
@@ -48,8 +45,7 @@ export const Suggestion = ({
       size={size}
       type="button"
       variant={variant}
-      {...props}
-    >
+      {...props}>
       {children || suggestion}
     </Button>
   );

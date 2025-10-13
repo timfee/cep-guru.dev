@@ -15,8 +15,7 @@ export const Canvas = ({ children, ...props }: CanvasProps) => (
     panOnScroll
     selectionOnDrag={true}
     zoomOnDoubleClick={false}
-    {...props}
-  >
+    {...props}>
     <Background bgColor="var(--sidebar)" />
     <Controls />
     {children}

@@ -1,5 +1,14 @@
 "use client";
 
+import { ArrowLeftIcon, ArrowRightIcon } from "lucide-react";
+import {
+  type ComponentProps,
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
 import { Badge } from "@/components/ui/badge";
 import {
   Carousel,
@@ -13,15 +22,6 @@ import {
   HoverCardTrigger,
 } from "@/components/ui/hover-card";
 import { cn } from "@/lib/utils";
-import { ArrowLeftIcon, ArrowRightIcon } from "lucide-react";
-import {
-  type ComponentProps,
-  createContext,
-  useCallback,
-  useContext,
-  useEffect,
-  useState,
-} from "react";
 
 export type InlineCitationProps = ComponentProps<"span">;
 
@@ -66,8 +66,7 @@ export const InlineCitationCardTrigger = ({
     <Badge
       className={cn("ml-1 rounded-full", className)}
       variant="secondary"
-      {...props}
-    >
+      {...props}>
       {sources.length ? (
         <>
           {new URL(sources[0]).hostname}{" "}
@@ -117,7 +116,7 @@ export const InlineCitationCarousel = ({
 export type InlineCitationCarouselContentProps = ComponentProps<"div">;
 
 export const InlineCitationCarouselContent = (
-  props: InlineCitationCarouselContentProps
+  props: InlineCitationCarouselContentProps,
 ) => <CarouselContent {...props} />;
 
 export type InlineCitationCarouselItemProps = ComponentProps<"div">;
@@ -141,7 +140,7 @@ export const InlineCitationCarouselHeader = ({
   <div
     className={cn(
       "flex items-center justify-between gap-2 rounded-t-md bg-secondary p-2",
-      className
+      className,
     )}
     {...props}
   />
@@ -175,10 +174,9 @@ export const InlineCitationCarouselIndex = ({
     <div
       className={cn(
         "flex flex-1 items-center justify-end px-3 py-1 text-muted-foreground text-xs",
-        className
+        className,
       )}
-      {...props}
-    >
+      {...props}>
       {children ?? `${current}/${count}`}
     </div>
   );
@@ -204,8 +202,7 @@ export const InlineCitationCarouselPrev = ({
       className={cn("shrink-0", className)}
       onClick={handleClick}
       type="button"
-      {...props}
-    >
+      {...props}>
       <ArrowLeftIcon className="size-4 text-muted-foreground" />
     </button>
   );
@@ -231,8 +228,7 @@ export const InlineCitationCarouselNext = ({
       className={cn("shrink-0", className)}
       onClick={handleClick}
       type="button"
-      {...props}
-    >
+      {...props}>
       <ArrowRightIcon className="size-4 text-muted-foreground" />
     </button>
   );
@@ -278,10 +274,9 @@ export const InlineCitationQuote = ({
   <blockquote
     className={cn(
       "border-muted border-l-2 pl-3 text-muted-foreground text-sm italic",
-      className
+      className,
     )}
-    {...props}
-  >
+    {...props}>
     {children}
   </blockquote>
 );

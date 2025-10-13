@@ -39,7 +39,7 @@ export async function processDocs(documents: Document[]): Promise<void> {
   }
 
   console.log(
-    `Processing ${batches.length} batches of up to ${BATCH_SIZE} documents each...`
+    `Processing ${batches.length} batches of up to ${BATCH_SIZE} documents each...`,
   );
 
   const index = new Index();
@@ -62,7 +62,7 @@ export async function processDocs(documents: Document[]): Promise<void> {
             ...(doc.metadata || {}),
           },
         });
-      })
+      }),
     );
   }
 

@@ -93,7 +93,7 @@ async function main() {
       // Only process pages with actual numeric IDs for content extraction
       if (!request.url.match(/\/(answer|topic)\/(\d+)/)) {
         console.log(
-          `📁 Topic/category page (no content extraction): ${request.url}`
+          `📁 Topic/category page (no content extraction): ${request.url}`,
         );
         // Still enqueue links from topic pages but don't extract content
         await enqueueLinks({

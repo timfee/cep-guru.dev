@@ -67,7 +67,7 @@ async function main() {
         console.log(`✓ Crawled: ${title}`);
       } else {
         console.log(
-          `⚠️ Skipping page with insufficient content: ${request.url}`
+          `⚠️ Skipping page with insufficient content: ${request.url}`,
         );
       }
 

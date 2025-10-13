@@ -1,5 +1,6 @@
 "use client";
 
+import type { ComponentProps } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Tooltip,
@@ -8,7 +9,6 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
-import type { ComponentProps } from "react";
 
 export type ActionsProps = ComponentProps<"div">;
 
@@ -36,13 +36,12 @@ export const Action = ({
     <Button
       className={cn(
         "relative size-9 p-1.5 text-muted-foreground hover:text-foreground",
-        className
+        className,
       )}
       size={size}
       type="button"
       variant={variant}
-      {...props}
-    >
+      {...props}>
       {children}
       <span className="sr-only">{label || tooltip}</span>
     </Button>

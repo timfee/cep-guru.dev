@@ -1,3 +1,5 @@
+import { Handle, Position } from "@xyflow/react";
+import type { ComponentProps } from "react";
 import {
   Card,
   CardAction,
@@ -8,8 +10,6 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
-import { Handle, Position } from "@xyflow/react";
-import type { ComponentProps } from "react";
 
 export type NodeProps = ComponentProps<typeof Card> & {
   handles: {
@@ -22,10 +22,9 @@ export const Node = ({ handles, className, ...props }: NodeProps) => (
   <Card
     className={cn(
       "node-container relative size-full h-auto w-sm gap-0 rounded-md p-0",
-      className
+      className,
     )}
-    {...props}
-  >
+    {...props}>
     {handles.target && <Handle position={Position.Left} type="target" />}
     {handles.source && <Handle position={Position.Right} type="source" />}
     {props.children}

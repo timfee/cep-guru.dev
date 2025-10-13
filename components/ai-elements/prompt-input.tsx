@@ -1,5 +1,40 @@
 "use client";
 
+import type { ChatStatus, FileUIPart } from "ai";
+import {
+  ImageIcon,
+  Loader2Icon,
+  PaperclipIcon,
+  PlusIcon,
+  SendIcon,
+  SquareIcon,
+  XIcon,
+} from "lucide-react";
+import { nanoid } from "nanoid";
+import NextImage from "next/image";
+import {
+  type ChangeEvent,
+  type ChangeEventHandler,
+  Children,
+  type ClipboardEventHandler,
+  type ComponentProps,
+  createContext,
+  type FormEvent,
+  type FormEventHandler,
+  Fragment,
+  type HTMLAttributes,
+  type KeyboardEventHandler,
+  type PropsWithChildren,
+  type ReactNode,
+  type RefObject,
+  useCallback,
+  useContext,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -26,41 +61,6 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
-import type { ChatStatus, FileUIPart } from "ai";
-import {
-  ImageIcon,
-  Loader2Icon,
-  MicIcon,
-  PaperclipIcon,
-  PlusIcon,
-  SendIcon,
-  SquareIcon,
-  XIcon,
-} from "lucide-react";
-import { nanoid } from "nanoid";
-import {
-  type ChangeEvent,
-  type ChangeEventHandler,
-  Children,
-  type ClipboardEventHandler,
-  type ComponentProps,
-  createContext,
-  type FormEvent,
-  type FormEventHandler,
-  Fragment,
-  type HTMLAttributes,
-  type KeyboardEventHandler,
-  type PropsWithChildren,
-  type ReactNode,
-  type RefObject,
-  useCallback,
-  useContext,
-  useEffect,
-  useLayoutEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
 // ============================================================================
 // Provider Context & Types
 // ============================================================================
@@ -86,20 +86,20 @@ export type PromptInputController = {
   /** INTERNAL: Allows PromptInput to register its file textInput + "open" callback */
   __registerFileInput: (
     ref: RefObject<HTMLInputElement | null>,
-    open: () => void
+    open: () => void,
   ) => void;
 };
 
 const PromptInputContext = createContext<PromptInputController | null>(null);
 const ProviderAttachmentsContext = createContext<AttachmentsContext | null>(
-  null
+  null,
 );
 
 export const usePromptInputController = () => {
   const ctx = useContext(PromptInputContext);
   if (!ctx) {
     throw new Error(
-      "Wrap your component inside <PromptInputProvider> to use usePromptInputController()."
+      "Wrap your component inside <PromptInputProvider> to use usePromptInputController().",
     );
   }
   return ctx;
@@ -114,7 +114,7 @@ export const useProviderAttachments = () => {
   const ctx = useContext(ProviderAttachmentsContext);
   if (!ctx) {
     throw new Error(
-      "Wrap your component inside <PromptInputProvider> to use useProviderAttachments()."
+      "Wrap your component inside <PromptInputProvider> to use useProviderAttachments().",
     );
   }
   return ctx;
@@ -159,8 +159,8 @@ export function PromptInputProvider({
           url: URL.createObjectURL(file),
           mediaType: file.type,
           filename: file.name,
-        }))
-      )
+        })),
+      ),
     );
   }, []);
 
@@ -192,7 +192,7 @@ export function PromptInputProvider({
       openFileDialog,
       fileInputRef,
     }),
-    [attachements, add, remove, clear, openFileDialog]
+    [attachements, add, remove, clear, openFileDialog],
   );
 
   const __registerFileInput = useCallback(
@@ -200,7 +200,7 @@ export function PromptInputProvider({
       fileInputRef.current = ref.current;
       openRef.current = open;
     },
-    []
+    [],
   );
 
   const controller = useMemo<PromptInputController>(
@@ -213,7 +213,7 @@ export function PromptInputProvider({
       attachments,
       __registerFileInput,
     }),
-    [textInput, clearInput, attachments, __registerFileInput]
+    [textInput, clearInput, attachments, __registerFileInput],
   );
 
   return (
@@ -238,7 +238,7 @@ export const usePromptInputAttachments = () => {
   const context = provider ?? local;
   if (!context) {
     throw new Error(
-      "usePromptInputAttachments must be used within a PromptInput or PromptInputProvider"
+      "usePromptInputAttachments must be used within a PromptInput or PromptInputProvider",
     );
   }
   return context;
@@ -264,18 +264,17 @@ export function PromptInputAttachment({
       className={cn(
         "group relative h-14 w-14 rounded-md border",
         className,
-        mediaType === "image" ? "h-14 w-14" : "h-8 w-auto max-w-full"
+        mediaType === "image" ? "h-14 w-14" : "h-8 w-auto max-w-full",
       )}
       key={data.id}
-      {...props}
-    >
+      {...props}>
       {mediaType === "image" ? (
-        <img
+        <NextImage
           alt={data.filename || "attachment"}
           className="size-full rounded-md object-cover"
-          height={56}
           src={data.url}
-          width={56}
+          unoptimized
+          fill
         />
       ) : (
         <div className="flex size-full max-w-full cursor-pointer items-center justify-start gap-2 overflow-hidden px-2 text-muted-foreground">
@@ -303,8 +302,7 @@ export function PromptInputAttachment({
         onClick={() => attachments.remove(data.id)}
         size="icon"
         type="button"
-        variant="outline"
-      >
+        variant="outline">
         <XIcon className="h-3 w-3" />
       </Button>
     </div>
@@ -359,11 +357,10 @@ export function PromptInputAttachments({
       aria-live="polite"
       className={cn(
         "overflow-hidden transition-[height] duration-200 ease-out",
-        className
+        className,
       )}
       style={{ height: attachments.files.length ? height : 0 }}
-      {...props}
-    >
+      {...props}>
       <div className="space-y-2 py-1" ref={contentRef}>
         <div className="flex flex-wrap gap-2">
           {attachments.files
@@ -402,8 +399,7 @@ export const PromptInputActionAddAttachments = ({
       onSelect={(e) => {
         e.preventDefault();
         attachments.openFileDialog();
-      }}
-    >
+      }}>
       <ImageIcon className="mr-2 size-4" /> {label}
     </DropdownMenuItem>
   );
@@ -433,7 +429,7 @@ export type PromptInputProps = Omit<
   }) => void;
   onSubmit: (
     message: PromptInputMessage,
-    event: FormEvent<HTMLFormElement>
+    event: FormEvent<HTMLFormElement>,
   ) => void | Promise<void>;
 };
 
@@ -486,7 +482,7 @@ export const PromptInput = ({
       // NOTE: keep simple; expand as needed
       return true;
     },
-    [accept]
+    [accept],
   );
 
   const addLocal = useCallback(
@@ -537,7 +533,7 @@ export const PromptInput = ({
         return prev.concat(next);
       });
     },
-    [matchesAccept, maxFiles, maxFileSize, onError]
+    [matchesAccept, maxFiles, maxFileSize, onError],
   );
 
   const add = usingProvider
@@ -671,7 +667,7 @@ export const PromptInput = ({
       openFileDialog,
       fileInputRef: inputRef,
     }),
-    [files, add, remove, clear, openFileDialog]
+    [files, add, remove, clear, openFileDialog],
   );
 
   const handleSubmit: FormEventHandler<HTMLFormElement> = (event) => {
@@ -694,14 +690,14 @@ export const PromptInput = ({
     // Convert blob URLs to data URLs asynchronously
     Promise.all(
       files.map(async ({ id, ...item }) => {
-        if (item.url && item.url.startsWith("blob:")) {
+        if (item.url?.startsWith("blob:")) {
           return {
             ...item,
             url: await convertBlobUrlToDataUrl(item.url),
           };
         }
         return item;
-      })
+      }),
     ).then((convertedFiles: FileUIPart[]) => {
       try {
         const result = onSubmit({ text, files: convertedFiles }, event);
@@ -715,7 +711,7 @@ export const PromptInput = ({
                 controller.textInput.clear();
               }
             })
-            .catch(() => {
+            .catch((_error) => {
               // Don't clear on error - user may want to retry
             });
         } else {
@@ -725,7 +721,7 @@ export const PromptInput = ({
             controller.textInput.clear();
           }
         }
-      } catch (error) {
+      } catch (_error) {
         // Don't clear on error - user may want to retry
       }
     });
@@ -748,8 +744,7 @@ export const PromptInput = ({
       <form
         className={cn("w-full", className)}
         onSubmit={handleSubmit}
-        {...props}
-      >
+        {...props}>
         <InputGroup>{children}</InputGroup>
       </form>
     </>
@@ -962,166 +957,9 @@ export const PromptInputSubmit = ({
       size={size}
       type="submit"
       variant={variant}
-      {...props}
-    >
+      {...props}>
       {children ?? Icon}
     </InputGroupButton>
-  );
-};
-
-interface SpeechRecognition extends EventTarget {
-  continuous: boolean;
-  interimResults: boolean;
-  lang: string;
-  start(): void;
-  stop(): void;
-  onstart: ((this: SpeechRecognition, ev: Event) => any) | null;
-  onend: ((this: SpeechRecognition, ev: Event) => any) | null;
-  onresult:
-    | ((this: SpeechRecognition, ev: SpeechRecognitionEvent) => any)
-    | null;
-  onerror:
-    | ((this: SpeechRecognition, ev: SpeechRecognitionErrorEvent) => any)
-    | null;
-}
-
-interface SpeechRecognitionEvent extends Event {
-  results: SpeechRecognitionResultList;
-}
-
-type SpeechRecognitionResultList = {
-  readonly length: number;
-  item(index: number): SpeechRecognitionResult;
-  [index: number]: SpeechRecognitionResult;
-};
-
-type SpeechRecognitionResult = {
-  readonly length: number;
-  item(index: number): SpeechRecognitionAlternative;
-  [index: number]: SpeechRecognitionAlternative;
-  isFinal: boolean;
-};
-
-type SpeechRecognitionAlternative = {
-  transcript: string;
-  confidence: number;
-};
-
-interface SpeechRecognitionErrorEvent extends Event {
-  error: string;
-}
-
-declare global {
-  interface Window {
-    SpeechRecognition: {
-      new (): SpeechRecognition;
-    };
-    webkitSpeechRecognition: {
-      new (): SpeechRecognition;
-    };
-  }
-}
-
-export type PromptInputSpeechButtonProps = ComponentProps<
-  typeof PromptInputButton
-> & {
-  textareaRef?: RefObject<HTMLTextAreaElement | null>;
-  onTranscriptionChange?: (text: string) => void;
-};
-
-export const PromptInputSpeechButton = ({
-  className,
-  textareaRef,
-  onTranscriptionChange,
-  ...props
-}: PromptInputSpeechButtonProps) => {
-  const [isListening, setIsListening] = useState(false);
-  const [recognition, setRecognition] = useState<SpeechRecognition | null>(
-    null
-  );
-  const recognitionRef = useRef<SpeechRecognition | null>(null);
-
-  useEffect(() => {
-    if (
-      typeof window !== "undefined" &&
-      ("SpeechRecognition" in window || "webkitSpeechRecognition" in window)
-    ) {
-      const SpeechRecognition =
-        window.SpeechRecognition || window.webkitSpeechRecognition;
-      const speechRecognition = new SpeechRecognition();
-
-      speechRecognition.continuous = true;
-      speechRecognition.interimResults = true;
-      speechRecognition.lang = "en-US";
-
-      speechRecognition.onstart = () => {
-        setIsListening(true);
-      };
-
-      speechRecognition.onend = () => {
-        setIsListening(false);
-      };
-
-      speechRecognition.onresult = (event) => {
-        let finalTranscript = "";
-
-        for (let i = 0; i < event.results.length; i++) {
-          if (event.results[i].isFinal) {
-            finalTranscript += event.results[i][0].transcript;
-          }
-        }
-
-        if (finalTranscript && textareaRef?.current) {
-          const textarea = textareaRef.current;
-          const currentValue = textarea.value;
-          const newValue =
-            currentValue + (currentValue ? " " : "") + finalTranscript;
-
-          textarea.value = newValue;
-          textarea.dispatchEvent(new Event("input", { bubbles: true }));
-          onTranscriptionChange?.(newValue);
-        }
-      };
-
-      speechRecognition.onerror = (event) => {
-        console.error("Speech recognition error:", event.error);
-        setIsListening(false);
-      };
-
-      recognitionRef.current = speechRecognition;
-      setRecognition(speechRecognition);
-    }
-
-    return () => {
-      if (recognitionRef.current) {
-        recognitionRef.current.stop();
-      }
-    };
-  }, [textareaRef, onTranscriptionChange]);
-
-  const toggleListening = useCallback(() => {
-    if (!recognition) return;
-
-    if (isListening) {
-      recognition.stop();
-    } else {
-      recognition.start();
-    }
-  }, [recognition, isListening]);
-
-  return (
-    <PromptInputButton
-      className={cn(
-        "relative transition-all duration-200",
-        isListening && "animate-pulse bg-accent text-accent-foreground",
-        className
-      )}
-      disabled={!recognition}
-      onClick={toggleListening}
-      {...props}
-    >
-      <MicIcon className="size-4" />
-    </PromptInputButton>
   );
 };
 
@@ -1143,7 +981,7 @@ export const PromptInputModelSelectTrigger = ({
     className={cn(
       "border-none bg-transparent font-medium text-muted-foreground shadow-none transition-colors",
       'hover:bg-accent hover:text-foreground [&[aria-expanded="true"]]:bg-accent [&[aria-expanded="true"]]:text-foreground',
-      className
+      className,
     )}
     {...props}
   />

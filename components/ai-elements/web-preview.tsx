@@ -1,5 +1,8 @@
 "use client";
 
+import { ChevronDownIcon } from "lucide-react";
+import type { ComponentProps, ReactNode } from "react";
+import { createContext, useContext, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Collapsible,
@@ -14,9 +17,6 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
-import { ChevronDownIcon } from "lucide-react";
-import type { ComponentProps, ReactNode } from "react";
-import { createContext, useContext, useEffect, useState } from "react";
 
 export type WebPreviewContextValue = {
   url: string;
@@ -67,10 +67,9 @@ export const WebPreview = ({
       <div
         className={cn(
           "flex size-full flex-col rounded-lg border bg-card",
-          className
+          className,
         )}
-        {...props}
-      >
+        {...props}>
         {children}
       </div>
     </WebPreviewContext.Provider>
@@ -86,8 +85,7 @@ export const WebPreviewNavigation = ({
 }: WebPreviewNavigationProps) => (
   <div
     className={cn("flex items-center gap-1 border-b p-2", className)}
-    {...props}
-  >
+    {...props}>
     {children}
   </div>
 );
@@ -112,8 +110,7 @@ export const WebPreviewNavigationButton = ({
           onClick={onClick}
           size="sm"
           variant="ghost"
-          {...props}
-        >
+          {...props}>
           {children}
         </Button>
       </TooltipTrigger>
@@ -212,18 +209,16 @@ export const WebPreviewConsole = ({
       className={cn("border-t bg-muted/50 font-mono text-sm", className)}
       onOpenChange={setConsoleOpen}
       open={consoleOpen}
-      {...props}
-    >
+      {...props}>
       <CollapsibleTrigger asChild>
         <Button
           className="flex w-full items-center justify-between p-4 text-left font-medium hover:bg-muted/50"
-          variant="ghost"
-        >
+          variant="ghost">
           Console
           <ChevronDownIcon
             className={cn(
               "h-4 w-4 transition-transform duration-200",
-              consoleOpen && "rotate-180"
+              consoleOpen && "rotate-180",
             )}
           />
         </Button>
@@ -231,9 +226,8 @@ export const WebPreviewConsole = ({
       <CollapsibleContent
         className={cn(
           "px-4 pb-4",
-          "data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 outline-none data-[state=closed]:animate-out data-[state=open]:animate-in"
-        )}
-      >
+          "data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 outline-none data-[state=closed]:animate-out data-[state=open]:animate-in",
+        )}>
         <div className="max-h-48 space-y-1 overflow-y-auto">
           {logs.length === 0 ? (
             <p className="text-muted-foreground">No console output</p>
@@ -244,10 +238,9 @@ export const WebPreviewConsole = ({
                   "text-xs",
                   log.level === "error" && "text-destructive",
                   log.level === "warn" && "text-yellow-600",
-                  log.level === "log" && "text-foreground"
+                  log.level === "log" && "text-foreground",
                 )}
-                key={`${log.timestamp.getTime()}-${index}`}
-              >
+                key={`${log.timestamp.getTime()}-${index}`}>
                 <span className="text-muted-foreground">
                   {log.timestamp.toLocaleTimeString()}
                 </span>{" "}

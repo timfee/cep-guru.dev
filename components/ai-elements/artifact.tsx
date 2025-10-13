@@ -1,5 +1,7 @@
 "use client";
 
+import { type LucideIcon, XIcon } from "lucide-react";
+import type { ComponentProps, HTMLAttributes } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Tooltip,
@@ -8,8 +10,6 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
-import { type LucideIcon, XIcon } from "lucide-react";
-import type { ComponentProps, HTMLAttributes } from "react";
 
 export type ArtifactProps = HTMLAttributes<HTMLDivElement>;
 
@@ -17,7 +17,7 @@ export const Artifact = ({ className, ...props }: ArtifactProps) => (
   <div
     className={cn(
       "flex flex-col overflow-hidden rounded-lg border bg-background shadow-sm",
-      className
+      className,
     )}
     {...props}
   />
@@ -32,7 +32,7 @@ export const ArtifactHeader = ({
   <div
     className={cn(
       "flex items-center justify-between border-b bg-muted/50 px-4 py-3",
-      className
+      className,
     )}
     {...props}
   />
@@ -50,13 +50,12 @@ export const ArtifactClose = ({
   <Button
     className={cn(
       "size-8 p-0 text-muted-foreground hover:text-foreground",
-      className
+      className,
     )}
     size={size}
     type="button"
     variant={variant}
-    {...props}
-  >
+    {...props}>
     {children ?? <XIcon className="size-4" />}
     <span className="sr-only">Close</span>
   </Button>
@@ -109,13 +108,12 @@ export const ArtifactAction = ({
     <Button
       className={cn(
         "size-8 p-0 text-muted-foreground hover:text-foreground",
-        className
+        className,
       )}
       size={size}
       type="button"
       variant={variant}
-      {...props}
-    >
+      {...props}>
       {Icon ? <Icon className="size-4" /> : children}
       <span className="sr-only">{label || tooltip}</span>
     </Button>
